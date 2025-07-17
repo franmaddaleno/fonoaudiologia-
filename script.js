@@ -68,7 +68,6 @@ const semestres = {
   ]
 };
 
-// FUNCIÓN PARA CREAR LA MALLA
 function crearMalla() {
   const grid = document.querySelector('.grid');
   for (const [semestre, ramos] of Object.entries(semestres)) {
@@ -79,4 +78,52 @@ function crearMalla() {
       const div = document.createElement('div');
       div.classList.add('ramo');
       div.dataset.id = ramo.id;
+      div.textContent = ramo.nombre;
+      if (ramo.prereq) {
+        div.dataset.prerq = ramo.prereq;
+        div.classList.add('locked');
+      }
+      box.appendChild(div);
+    });
+    grid.appendChild(box);
+  }
+}
+
+function marcarDesmarcar(ramo) {
+  if (ramo.classList.contains('aprobado')) {
+    ramo.classList.remove('aprobado');
+    localStorage.removeItem(ramo.dataset.id);
+  } else {
+    ramo.classList.add('aprobado');
+    localStorage.setItem(ramo.dataset.id, 'aprobado');
+  }
+}
+
+function desbloquearRamos() {
+  document.querySelectorAll('.ramo.locked').forEach(ramo => {
+    const prereq = ramo.dataset.prerq;
+    if (localStorage.getItem(prereq) === 'aprobado') {
+      ramo.classList.remove('locked');
+      ramo.style.background = '#f8bbd0';
+      ramo.style.cursor = 'pointer';
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  crearMalla();
+  document.querySelectorAll('.ramo').forEach(ramo => {
+    if (localStorage.getItem(ramo.dataset.id) === 'aprobado') {
+      ramo.classList.add('aprobado');
+    }
+    ramo.addEventListener('click', () => {
+      if (!ramo.classList.contains('locked')) {
+        marcarDesmarcar(ramo);
+        desbloquearRamos();
+      }
+    });
+  });
+  desbloquearRamos();
+});
+
 
